@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "devices": {
+      "$deviceId": {
+        "telemetry": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['timestamp'])"
+        },
+        "status": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "commands": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['commandId', 'actuator', 'requestedState'])"
+        },
+        "reportedState": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}

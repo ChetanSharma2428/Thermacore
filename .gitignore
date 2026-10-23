@@ -1,0 +1,36 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Production Builds
+dist/
+build/
+
+# Local Environment Variables & Secrets (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+secrets.h
+*/secrets.h
+firmware/**/secrets.h
+config.h
+*/config.h
+
+# IDE / Editor Folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arduino / PlatformIO Temp Files
+.pio/
+*.bin
+*.elf
+*.hex
+
+# Firebase Logs
+firebase-debug.log*
+.firebase/
