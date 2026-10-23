@@ -2,26 +2,41 @@ import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 import { rtdb, isConfigured } from './firebase';
 
 /**
+ * Sanitizes deviceId by stripping tabs, newlines, spaces, and illegal Firebase path characters (. # $ [ ])
+ */
+export function sanitizeDeviceId(rawId) {
+  if (!rawId || typeof rawId !== 'string') return 'thermacore-esp32-01';
+  const cleaned = rawId.replace(/[\t\r\n\s.#$[\]]/g, '').trim();
+  return cleaned || 'thermacore-esp32-01';
+}
+
+/**
  * Subscribe to the latest real-time sensor telemetry for a device.
  * Path: devices/{deviceId}/telemetry
  */
 export function subscribeToTelemetry(deviceId, onData, onError) {
   if (!isConfigured) {
-    // Return no-op un-subscriber if Firebase is unconfigured
     return () => {};
   }
-  const telemetryRef = ref(rtdb, `devices/${deviceId}/telemetry`);
-  return onValue(
-    telemetryRef,
-    (snapshot) => {
-      const val = snapshot.val();
-      onData(val);
-    },
-    (err) => {
-      console.error(`Telemetry subscription error for ${deviceId}:`, err);
-      if (onError) onError(err);
-    }
-  );
+  const cleanId = sanitizeDeviceId(deviceId);
+  try {
+    const telemetryRef = ref(rtdb, `devices/${cleanId}/telemetry`);
+    return onValue(
+      telemetryRef,
+      (snapshot) => {
+        const val = snapshot.val();
+        onData(val);
+      },
+      (err) => {
+        console.error(`Telemetry subscription error for ${cleanId}:`, err);
+        if (onError) onError(err);
+      }
+    );
+  } catch (err) {
+    console.error(`Failed to create telemetry ref for ${cleanId}:`, err);
+    if (onError) onError(err);
+    return () => {};
+  }
 }
 
 /**
@@ -30,18 +45,25 @@ export function subscribeToTelemetry(deviceId, onData, onError) {
  */
 export function subscribeToStatus(deviceId, onData, onError) {
   if (!isConfigured) return () => {};
-  const statusRef = ref(rtdb, `devices/${deviceId}/status`);
-  return onValue(
-    statusRef,
-    (snapshot) => {
-      const val = snapshot.val();
-      onData(val);
-    },
-    (err) => {
-      console.error(`Status subscription error for ${deviceId}:`, err);
-      if (onError) onError(err);
-    }
-  );
+  const cleanId = sanitizeDeviceId(deviceId);
+  try {
+    const statusRef = ref(rtdb, `devices/${cleanId}/status`);
+    return onValue(
+      statusRef,
+      (snapshot) => {
+        const val = snapshot.val();
+        onData(val);
+      },
+      (err) => {
+        console.error(`Status subscription error for ${cleanId}:`, err);
+        if (onError) onError(err);
+      }
+    );
+  } catch (err) {
+    console.error(`Failed to create status ref for ${cleanId}:`, err);
+    if (onError) onError(err);
+    return () => {};
+  }
 }
 
 /**
@@ -50,18 +72,25 @@ export function subscribeToStatus(deviceId, onData, onError) {
  */
 export function subscribeToReportedState(deviceId, onData, onError) {
   if (!isConfigured) return () => {};
-  const reportedRef = ref(rtdb, `devices/${deviceId}/reportedState`);
-  return onValue(
-    reportedRef,
-    (snapshot) => {
-      const val = snapshot.val();
-      onData(val);
-    },
-    (err) => {
-      console.error(`Reported state subscription error for ${deviceId}:`, err);
-      if (onError) onError(err);
-    }
-  );
+  const cleanId = sanitizeDeviceId(deviceId);
+  try {
+    const reportedRef = ref(rtdb, `devices/${cleanId}/reportedState`);
+    return onValue(
+      reportedRef,
+      (snapshot) => {
+        const val = snapshot.val();
+        onData(val);
+      },
+      (err) => {
+        console.error(`Reported state subscription error for ${cleanId}:`, err);
+        if (onError) onError(err);
+      }
+    );
+  } catch (err) {
+    console.error(`Failed to create reportedState ref for ${cleanId}:`, err);
+    if (onError) onError(err);
+    return () => {};
+  }
 }
 
 /**
@@ -74,14 +103,15 @@ export function subscribeToReportedState(deviceId, onData, onError) {
  */
 export async function sendDeviceCommand(deviceId, actuator, requestedState) {
   if (!isConfigured) {
-    throw new Error('Firebase is not configured. Add your credentials to .env.local');
+    throw new Error('Firebase is not configured. Add your credentials in Vercel or .env.local');
   }
 
+  const cleanId = sanitizeDeviceId(deviceId);
   const commandId = typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : 'cmd_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
-  const commandRef = ref(rtdb, `devices/${deviceId}/commands`);
+  const commandRef = ref(rtdb, `devices/${cleanId}/commands`);
   const payload = {
     commandId,
     actuator,

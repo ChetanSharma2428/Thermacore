@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DeviceDock({ deviceId, onDeviceChange, connectionHealth, deviceStatus }) {
   const [inputVal, setInputVal] = useState(deviceId);
 
+  useEffect(() => {
+    setInputVal(deviceId);
+  }, [deviceId]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputVal.trim()) {
-      onDeviceChange(inputVal.trim());
+    const cleaned = inputVal.replace(/[\t\r\n\s.#$[\]]/g, '').trim();
+    if (cleaned) {
+      onDeviceChange(cleaned);
     }
   };
 

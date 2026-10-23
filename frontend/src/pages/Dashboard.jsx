@@ -9,12 +9,21 @@ import TemperatureTrendChart from '../components/TemperatureTrendChart';
 import Footer from '../components/Footer';
 import { useDeviceTelemetry } from '../hooks/useDeviceTelemetry';
 import { useAuth } from '../hooks/useAuth';
+import { sanitizeDeviceId } from '../lib/database';
 
-const DEFAULT_DEVICE_ID = import.meta.env.VITE_DEFAULT_DEVICE_ID || 'thermacore-esp32-01';
+const rawDefaultId = import.meta.env.VITE_DEFAULT_DEVICE_ID || 'thermacore-esp32-01';
+const DEFAULT_DEVICE_ID = sanitizeDeviceId(rawDefaultId);
 
 export default function Dashboard() {
   const [deviceId, setDeviceId] = useState(() => {
-    return localStorage.getItem('thermacore_cloud_device_id') || DEFAULT_DEVICE_ID;
+    try {
+      const saved = localStorage.getItem('thermacore_cloud_device_id');
+      const clean = sanitizeDeviceId(saved || DEFAULT_DEVICE_ID);
+      localStorage.setItem('thermacore_cloud_device_id', clean);
+      return clean;
+    } catch {
+      return DEFAULT_DEVICE_ID;
+    }
   });
 
   const { user, authError } = useAuth();
@@ -31,8 +40,13 @@ export default function Dashboard() {
   } = useDeviceTelemetry(deviceId);
 
   const handleDeviceChange = (newDeviceId) => {
-    setDeviceId(newDeviceId);
-    localStorage.setItem('thermacore_cloud_device_id', newDeviceId);
+    const clean = sanitizeDeviceId(newDeviceId);
+    setDeviceId(clean);
+    try {
+      localStorage.setItem('thermacore_cloud_device_id', clean);
+    } catch (e) {
+      console.warn('Failed to save deviceId to localStorage:', e);
+    }
   };
 
   const isControlDisabled = connectionHealth === 'OFFLINE' || connectionHealth === 'UNCONFIGURED';
