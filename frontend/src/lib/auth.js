@@ -8,7 +8,7 @@ import {
 import { auth, isConfigured } from './firebase';
 
 export async function signInAnonymousUser() {
-  if (!isConfigured) {
+  if (!isConfigured || !auth) {
     console.warn('Firebase is not configured. Running in unauthenticated demo mode.');
     return { uid: 'demo-local-user', isAnonymous: true };
   }
@@ -22,7 +22,7 @@ export async function signInAnonymousUser() {
 }
 
 export async function signInWithEmail(email, password) {
-  if (!isConfigured) {
+  if (!isConfigured || !auth) {
     return { uid: 'demo-user', email };
   }
   const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -30,7 +30,7 @@ export async function signInWithEmail(email, password) {
 }
 
 export async function registerWithEmail(email, password) {
-  if (!isConfigured) {
+  if (!isConfigured || !auth) {
     return { uid: 'demo-user', email };
   }
   const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -38,12 +38,12 @@ export async function registerWithEmail(email, password) {
 }
 
 export async function signOutUser() {
-  if (!isConfigured) return;
+  if (!isConfigured || !auth) return;
   await signOut(auth);
 }
 
 export function onAuthChange(callback) {
-  if (!isConfigured) {
+  if (!isConfigured || !auth) {
     callback({ uid: 'demo-local-user', isAnonymous: true });
     return () => {};
   }

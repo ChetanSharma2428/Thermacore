@@ -15,7 +15,7 @@ export function sanitizeDeviceId(rawId) {
  * Path: devices/{deviceId}/telemetry
  */
 export function subscribeToTelemetry(deviceId, onData, onError) {
-  if (!isConfigured) {
+  if (!isConfigured || !rtdb) {
     return () => {};
   }
   const cleanId = sanitizeDeviceId(deviceId);
@@ -44,7 +44,7 @@ export function subscribeToTelemetry(deviceId, onData, onError) {
  * Path: devices/{deviceId}/status
  */
 export function subscribeToStatus(deviceId, onData, onError) {
-  if (!isConfigured) return () => {};
+  if (!isConfigured || !rtdb) return () => {};
   const cleanId = sanitizeDeviceId(deviceId);
   try {
     const statusRef = ref(rtdb, `devices/${cleanId}/status`);
@@ -71,7 +71,7 @@ export function subscribeToStatus(deviceId, onData, onError) {
  * Path: devices/{deviceId}/reportedState
  */
 export function subscribeToReportedState(deviceId, onData, onError) {
-  if (!isConfigured) return () => {};
+  if (!isConfigured || !rtdb) return () => {};
   const cleanId = sanitizeDeviceId(deviceId);
   try {
     const reportedRef = ref(rtdb, `devices/${cleanId}/reportedState`);
@@ -102,7 +102,7 @@ export function subscribeToReportedState(deviceId, onData, onError) {
  * @param {number} requestedState (0=Off, 1=Heat, 2=Cool for Peltier; 0=Off, 1=On for Vib)
  */
 export async function sendDeviceCommand(deviceId, actuator, requestedState) {
-  if (!isConfigured) {
+  if (!isConfigured || !rtdb) {
     throw new Error('Firebase is not configured. Add your credentials in Vercel or .env.local');
   }
 
